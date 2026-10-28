@@ -72,6 +72,9 @@ uint8_t app_fsm_get_now_cursor(void){
     return g_app_fsm_now_cursor;
 };
 
+/**
+ * @brief 根据按键状态对应更改页面
+ */
 void app_fsm_key(void){
     APP_FSM_MENU_PAGE_t s_now_page = s_app_fsm_pages[g_app_fsm_now_page];
     uint8_t s_max_scroll = s_now_page.item_count;
@@ -106,3 +109,7 @@ void app_fsm_key(void){
         break;
     }
 };
+
+void app_fsm_main(void){
+    app_fsm_key();
+}

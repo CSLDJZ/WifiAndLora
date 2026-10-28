@@ -9,6 +9,15 @@ typedef enum {
     KEY_RIGHT   // 又兼前进
 } INT_KEYS_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void int_key_main(void);
 INT_KEYS_t int_key_get_now_key(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

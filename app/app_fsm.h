@@ -31,7 +31,16 @@ typedef struct{
     uint8_t item_count;         // 页面下选项数量
 } APP_FSM_MENU_PAGE_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void app_fsm_main(void);
 APP_FSM_PAGE_t app_fsm_get_now_page(void);
 uint8_t app_fsm_get_now_cursor(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // APP_FSM_H
