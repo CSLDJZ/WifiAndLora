@@ -5,21 +5,27 @@
 1. 项目结构与模块职责
 
 .
-├── main.cpp                 程序入口：初始化并运行主循环
-├── init.c / init.h          统一初始化注册表
-├── data_types.h             应用层共享数据类型
-├── app/
-│   ├── app_data_proc.c/.h   采集、整理并更新应用数据
-│   ├── app_view.c/.h        页面状态和显示内容组织
-│   ├── app_io.c/.h          SD 卡、串口等应用级输入/输出
-│   └── app_fsm.c/.h         页面/菜单有限状态机
-└── int/
-    ├── int_wifi.cpp/.h      WiFi 接口
-    ├── int_lora.cpp/.h      LoRa 接口
-    ├── int_oled.cpp/.h      OLED 接口
-    ├── int_sd.cpp/.h        SD 卡接口
-    ├── int_uart.cpp/.h      UART/串口接口
-    └── int_key.cpp/.h       按键接口
+├── platformio.ini           构建入口：板型、框架、源码目录配置
+├── CMakeLists.txt           工程级 CMake 入口（指向 main 组件）
+├── sdkconfig.defaults       Flash / PSRAM 的 ESP-IDF 默认配置
+├── boards/                  自定义开发板定义（ESP32-S3 N16R8）
+└── main/                    ESP-IDF 标准主组件，以下为组件内源码
+    ├── CMakeLists.txt       组件构建描述，自动收集 .c/.cpp
+    ├── main.cpp             程序入口：初始化并运行主循环
+    ├── init.c / init.h      统一初始化注册表
+    ├── data_types.h         应用层共享数据类型
+    ├── app/
+    │   ├── app_data_proc.c/.h   采集、整理并更新应用数据
+    │   ├── app_view.c/.h        页面状态和显示内容组织
+    │   ├── app_io.c/.h          SD 卡、串口等应用级输入/输出
+    │   └── app_fsm.c/.h         页面/菜单有限状态机
+    └── int/
+        ├── int_wifi.cpp/.h      WiFi 接口
+        ├── int_lora.cpp/.h      LoRa 接口
+        ├── int_oled.cpp/.h      OLED 接口
+        ├── int_sd.cpp/.h        SD 卡接口
+        ├── int_uart.cpp/.h      UART/串口接口
+        └── int_key.cpp/.h       按键接口
 
 
 main 负责启动顺序和周期调度，不能涉及具体业务逻辑

@@ -1,19 +1,4 @@
-idf_component_register(
-    SRCS
-        "main.cpp"
-        "init.c"
-        "app/app_data_proc.c"
-        "app/app_fsm.c"
-        "app/app_io.c"
-        "app/app_view.c"
-        "int/int_key.cpp"
-        "int/int_lora.cpp"
-        "int/int_oled.cpp"
-        "int/int_sd.cpp"
-        "int/int_uart.cpp"
-        "int/int_wifi.cpp"
-    INCLUDE_DIRS
-        "."
-        "app"
-        "int"
-)
+cmake_minimum_required(VERSION 3.16.0)
+
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+project(WifiAndLora)

@@ -1,11 +1,6 @@
 # PlatformIO build output and generated configuration
-WifiAndLora/.pio/
-WifiAndLora/sdkconfig.esp32-s3-n16r8
+.pio/
+sdkconfig.esp32-s3-n16r8
 
 # Local VS Code workspace settings
 .vscode/
-
-# PlatformIO placeholder documentation
-WifiAndLora/include/README
-WifiAndLora/lib/README
-WifiAndLora/test/README
