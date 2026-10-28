@@ -6,6 +6,8 @@
 #include "app_view.h"
 #include "app_io.h"
 
+#include "..\int\int_key.h"
+
 // 页面位置枚举
 static APP_FSM_PAGE_t g_app_fsm_now_page;
 // 光标
@@ -71,5 +73,36 @@ uint8_t app_fsm_get_now_cursor(void){
 };
 
 void app_fsm_key(void){
-    // 取余法算光标，待续
-}
+    APP_FSM_MENU_PAGE_t s_now_page = s_app_fsm_pages[g_app_fsm_now_page];
+    uint8_t s_max_scroll = s_now_page.item_count;
+
+    INT_KEYS_t s_now_key = int_key_get_now_key();
+    switch (s_now_key){
+    case KEY_UP:
+        g_app_fsm_now_cursor = (g_app_fsm_now_cursor - 1) % s_max_scroll;
+        break;
+    
+    case KEY_DOWN:
+        g_app_fsm_now_cursor = (g_app_fsm_now_cursor + 1) % s_max_scroll;
+        break;
+
+    case KEY_LEFT:
+        if (s_now_page.back_id != PAGE_NONE){
+            g_app_fsm_now_page = s_now_page.back_id;
+        }
+        break;
+
+    case KEY_RIGHT:
+        if (s_now_page.items[g_app_fsm_now_cursor].funk != NULL){
+            s_now_page.items[g_app_fsm_now_cursor].funk();
+        }
+        if (s_now_page.items[g_app_fsm_now_cursor].next_page != PAGE_NONE){
+            g_app_fsm_now_page = s_now_page.items[g_app_fsm_now_cursor].next_page;
+        }
+        break;
+
+    case KEY_NO:
+        // 留空，暂时无意义
+        break;
+    }
+};

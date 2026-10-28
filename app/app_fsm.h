@@ -26,7 +26,7 @@ typedef struct{
 // 页面
 typedef struct{
     const char *title;          // 界面标题
-    APP_FSM_PAGE_t back_id;     // 返回页面id
+    APP_FSM_PAGE_t back_id;     // 父级页面id
     const APP_FSM_ITEM_t *items;// 页面下选项
     uint8_t item_count;         // 页面下选项数量
 } APP_FSM_MENU_PAGE_t;
