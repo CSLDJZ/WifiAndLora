@@ -4,3 +4,6 @@ sdkconfig.esp32-s3-n16r8
 
 # Local VS Code workspace settings
 .vscode/
+
+# Vendor datasheets and manuals (local reference only)
+docs/

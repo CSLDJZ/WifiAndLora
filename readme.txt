@@ -1,4 +1,33 @@
-﻿WiFi / LoRa 网络巡检仪
+﻿========================================================================
+第三方组件与开源许可声明
+
+本项目在实现、构建与烧录过程中引用／使用了以下开源组件，
+其著作权归各自作者所有，并遵循各自的许可证：
+
+1. ESP-IDF v6.1.0
+   用途：芯片启动、外设驱动、C 运行库、FreeRTOS 运行环境
+   许可证：Apache License 2.0
+   版权：Espressif Systems
+
+2. FreeRTOS Kernel（随 ESP-IDF 分发）
+   用途：任务调度与同步原语
+   许可证：MIT License
+   版权：Amazon.com, Inc. 及其关联公司
+
+3. 构建与烧录工具
+   - PlatformIO Core 6.2.0        Apache License 2.0
+   - esptool 5.4.0                GNU GPL v2
+   - xtensa-esp-elf GCC 15.2.0    GNU GPL 系列（含 GCC 运行时例外）
+
+说明：
+- 上述组件均以原始形式使用，本项目未修改其源码。
+- 本项目源码中未引入其他第三方库。
+- 后续如引入新的第三方库，须在本节补充库名、版本、作者及许可证。
+
+许可证全文见各组件安装目录下的 LICENSE / COPYING 文件。
+========================================================================
+
+WiFi / LoRa 网络巡检仪
 
 本文约定开发环境、模块边界、主程序数据流和代码命名规范
 
@@ -98,3 +127,51 @@ oled显示屏: 微雪电子(Waveshare)的SSD1309, 四线SPI接口
 Micro SD卡模块: 用于存储数据，目前属于优先级最低的部分
 
 可自行查找技术文档编写硬件接口
+
+5. OLED 显示方案（前期决策）
+
+当前屏幕为 SSD1309 128×64 单色屏，规划界面以状态、扫描结果和菜单信息为主。
+现阶段不引入 LVGL 等完整 GUI 库：其控件、布局和内存开销超出当前需求，且项目尚无明确的复杂动画或触摸交互需求。OLED 接口使用 ESP-IDF SPI 驱动，并提供 1KB 页式帧缓冲的整屏刷新和清屏能力；帧缓冲按 SSD1309 GDDRAM 顺序排列，每页 128 字节，每字节对应竖直连续的 8 个像素。
+
+此接口只负责屏幕初始化和帧缓冲传输，不包含字体或控件绘制。应用层后续可按页面需求使用精简绘制代码；若界面扩展到复杂字体、控件或动画，再评估引入 U8g2 或 LVGL。当前不增加第三方 GUI 依赖。
+
+SPI 引脚在 `main/int/int_oled.h` 中通过 `INT_OLED_PIN_*` 宏配置，未配置时初始化会返回错误。`INT_OLED_PIN_CS` 可设为 `-1`（屏幕 CS# 已固定拉低）或指定 ESP32-S3 GPIO；MOSI、SCLK、D/C 和 RESET 必须配置为互不冲突的有效 GPIO。
+
+6. 编译产物与成功判定
+
+(1) 产物位置
+
+.pio/build/esp32-s3-n16r8/          本工程的构建目录
+    firmware.bin / firmware.elf     最终固件
+    main/<相对路径>/<文件名>.o       各源文件的编译目标文件，例如 main/int/int_oled.cpp.o
+    esp-idf/main/libmain.a          main 组件打包出的静态库
+
+(2) 判定编译成功的依据
+
+必须同时满足下列条件，才算本次编译成功：
+
+终端最后出现 [SUCCESS] Took <秒数> seconds
+日志中没有 error: 字样；本工程沿用 ESP-IDF 的 -Werror，警告同样会中断构建
+firmware.bin 与 firmware.elf 的修改时间已更新
+日志中出现 Successfully created ESP32-S3 image
+
+注意：只看到 "Compiling xxx.o" 并不代表该文件编译通过，必须确认其后没有 error:，且对应的 .o 文件已生成。
+
+(3) 避免浪费时间的检查方法
+
+增量构建通常只需十几秒。以下操作会让 CMake 重新配置并全量重编整个 ESP-IDF 框架（本机约 20 分钟以上），不要随手触发：
+
+新增、删除或重命名源文件（main/CMakeLists.txt 用 GLOB 收集源文件，文件列表一变化就重新配置）
+修改 main/CMakeLists.txt
+修改工程级 CMakeLists.txt、platformio.ini、sdkconfig.defaults
+
+只改动已有文件的内容时，直接增量构建即可，日志里只会出现这些文件的 Compiling 行。
+
+若只想确认某个文件能否通过编译：等日志出现该文件的 .o 生成记录、且其后没有 error:，即可中断构建，不必等链接和打包结束；随后确认 .pio/build/esp32-s3-n16r8/main/<相对路径>/<文件名>.o 已生成即为通过。
+
+建议把编译输出同时写入日志，便于事后检索，而不是反复重跑：
+
+pio run -e esp32-s3-n16r8 2>&1 | Tee-Object -FilePath .pio\build-log.txt
+Select-String -Path .pio\build-log.txt -Pattern 'error:|warning:'
+
+无需保留日志时，构建结束后删除 .pio\build-log.txt 即可。
