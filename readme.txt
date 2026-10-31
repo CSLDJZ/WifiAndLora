@@ -49,6 +49,7 @@ WiFi / LoRa 网络巡检仪
     │   ├── app_io.c/.h          SD 卡、串口等应用级输入/输出
     │   └── app_fsm.c/.h         页面/菜单有限状态机
     └── int/
+        ├── int_timer.cpp/.h    1ms GPTimer 接口
         ├── int_wifi.cpp/.h      WiFi 接口
         ├── int_lora.cpp/.h      LoRa 接口
         ├── int_oled.cpp/.h      OLED 接口
@@ -85,11 +86,19 @@ Wokwi 硬件仿真
 目标运行结构如下：
 
 main
- ├─ init_all()：按注册顺序初始化外设和应用模块
+ ├─ int_timer_set_tick_callback：把调度 tick 函数交给 int_timer
+ ├─ init_all()：按注册顺序初始化外设和应用模块（含 1ms GPTimer）
  └─ while (true)
      ├─ app_data_proc：从 int_wifi / int_lora 等接口采集并整理数据
      ├─ app_view：读取应用数据，绘制当前页面并调用 int_oled 显示
      └─ app_io：按需调用 int_sd / int_uart 以保存数据或将数据上传至PC
+
+任务调度说明
+
+main.cpp 中的 s_main_work_list 为任务注册表，字段 max_tick 表示调度周期，单位 ms；
+int_timer 的 1ms 报警中断调用 main_tick，按 max_tick 累加 now_tick 并置位
+is_can_run，app_main 主循环取出可运行标志并调用对应任务函数。中断与主循环
+通过临界区同步任务标志，任务函数不得阻塞。
 
 data_types 的生产与消费
 
@@ -146,18 +155,7 @@ SPI 引脚在 `main/int/int_oled.h` 中通过 `INT_OLED_PIN_*` 宏配置，未�
     main/<相对路径>/<文件名>.o       各源文件的编译目标文件，例如 main/int/int_oled.cpp.o
     esp-idf/main/libmain.a          main 组件打包出的静态库
 
-(2) 判定编译成功的依据
-
-必须同时满足下列条件，才算本次编译成功：
-
-终端最后出现 [SUCCESS] Took <秒数> seconds
-日志中没有 error: 字样；本工程沿用 ESP-IDF 的 -Werror，警告同样会中断构建
-firmware.bin 与 firmware.elf 的修改时间已更新
-日志中出现 Successfully created ESP32-S3 image
-
-注意：只看到 "Compiling xxx.o" 并不代表该文件编译通过，必须确认其后没有 error:，且对应的 .o 文件已生成。
-
-(3) 避免浪费时间的检查方法
+(2) 避免浪费时间的检查方法
 
 增量构建通常只需十几秒。以下操作会让 CMake 重新配置并全量重编整个 ESP-IDF 框架（本机约 20 分钟以上），不要随手触发：
 

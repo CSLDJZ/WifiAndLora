@@ -10,6 +10,14 @@ typedef struct {
     InitFunc func;
 } Init;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool init_all(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // INIT_H

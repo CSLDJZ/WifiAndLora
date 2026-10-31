@@ -8,5 +8,6 @@ idf_component_register(
         "int"
     REQUIRES
         esp_driver_gpio
+        esp_driver_gptimer
         esp_driver_spi
 )
