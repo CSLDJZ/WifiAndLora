@@ -43,6 +43,10 @@ static const APP_FSM_ITEM_t s_app_fsm_save_error_items[] = {
     {"Error", PAGE_NONE, NULL},
     {"Back", PAGE_MAIN, NULL}
 };
+// 上报PC界面选项
+static const APP_FSM_ITEM_t s_app_fsm_uart_tx_items[] = {
+    {"Back", PAGE_MAIN, NULL}
+};
 
 #define APP_FSM_ITEM_COUNT(a) (sizeof(a) / sizeof((a)[0]))
 // 界面注册表
@@ -52,7 +56,8 @@ static const APP_FSM_MENU_PAGE_t s_app_fsm_pages[] = {
     [PAGE_LORA] = {"Lora", PAGE_MAIN, s_app_fsm_lora_items, APP_FSM_ITEM_COUNT(s_app_fsm_lora_items)},
     [PAGE_SAVE] = {"Save", PAGE_MAIN, s_app_fsm_save_items, APP_FSM_ITEM_COUNT(s_app_fsm_save_items)},
     [PAGE_SAVE_READY] = {"Save ready", PAGE_SAVE, s_app_fsm_save_ready_items, APP_FSM_ITEM_COUNT(s_app_fsm_save_ready_items)},
-    [PAGE_SAVE_ERROR] = {"Save error", PAGE_SAVE, s_app_fsm_save_error_items, APP_FSM_ITEM_COUNT(s_app_fsm_save_error_items)}
+    [PAGE_SAVE_ERROR] = {"Save error", PAGE_SAVE, s_app_fsm_save_error_items, APP_FSM_ITEM_COUNT(s_app_fsm_save_error_items)},
+    [PAGE_UART_TX] = {"Out data to PC", PAGE_MAIN, s_app_fsm_uart_tx_items, APP_FSM_ITEM_COUNT(s_app_fsm_uart_tx_items)}
 };
 
 /**
@@ -82,7 +87,8 @@ void app_fsm_key(void){
     INT_KEYS_t s_now_key = int_key_get_now_key();
     switch (s_now_key){
     case KEY_UP:
-        g_app_fsm_now_cursor = (g_app_fsm_now_cursor - 1) % s_max_scroll;
+        // 先加上一圈再取模，避免光标为 0 时算出 -1 回绕成 255
+        g_app_fsm_now_cursor = (uint8_t)((g_app_fsm_now_cursor + s_max_scroll - 1) % s_max_scroll);
         break;
     
     case KEY_DOWN:
@@ -92,6 +98,8 @@ void app_fsm_key(void){
     case KEY_LEFT:
         if (s_now_page.back_id != PAGE_NONE){
             g_app_fsm_now_page = s_now_page.back_id;
+            // 换页后光标回到首项，新页面选项数可能比上页少
+            g_app_fsm_now_cursor = 0;
         }
         break;
 
@@ -101,6 +109,8 @@ void app_fsm_key(void){
         }
         if (s_now_page.items[g_app_fsm_now_cursor].next_page != PAGE_NONE){
             g_app_fsm_now_page = s_now_page.items[g_app_fsm_now_cursor].next_page;
+            // 换页后光标回到首项，新页面选项数可能比上页少
+            g_app_fsm_now_cursor = 0;
         }
         break;
 
