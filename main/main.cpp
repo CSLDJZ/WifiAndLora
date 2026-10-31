@@ -9,6 +9,7 @@
 #include "int\int_timer.h"
 
 #include "app\app_fsm.h"
+#include "app\app_view.h"
 
 // 主循环任务结构体
 typedef struct {
@@ -21,6 +22,7 @@ typedef struct {
 static MAIN_WORK_t s_main_work_list[] = {
     {0, 10, 0, int_key_main},
     {0, 10, 0, app_fsm_main},
+    {0, 20, 0, app_view_main},
 };
 #define MAIN_WORK_LIST_COUNT(a) (sizeof(a) / sizeof((a)[0]))
 
